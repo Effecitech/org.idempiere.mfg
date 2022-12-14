@@ -25,6 +25,7 @@ import org.compiere.util.AdempiereSystemError;
 import org.compiere.util.Env; 
 import org.eevolution.model.MPPProductBOM;
 import org.eevolution.model.MPPProductBOMLine;
+import org.eevolution.model.X_PP_Product_BOMLine;
 
 /**
  *	CopyFromBOM Process
@@ -80,7 +81,7 @@ public class CopyFromBOM extends SvrProcess {
 		MPPProductBOMLine[] frombomlines = fromBom.getLines();
 		for (MPPProductBOMLine frombomline : frombomlines)
 		{
-			MPPProductBOMLine tobomline = new MPPProductBOMLine(ctx, 0, get_TrxName());
+			X_PP_Product_BOMLine tobomline = new X_PP_Product_BOMLine(ctx, 0, get_TrxName());
 			MPPProductBOMLine.copyValues(frombomline, tobomline);
 			tobomline.setPP_Product_BOM_ID(toBOM.getPP_Product_BOM_ID());
 			tobomline.save();
