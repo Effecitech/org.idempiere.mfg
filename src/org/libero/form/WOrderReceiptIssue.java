@@ -939,6 +939,10 @@ ValueChangeListener,Serializable,WTableModelListener
 						}
 					}
 					order.orderStock();
+					
+					order.setDocAction(MPPOrder.ACTION_Close);
+					order.processIt(MPPOrder.ACTION_Close);
+					order.saveEx();
 				}});
 		}
 		catch (Exception e)
