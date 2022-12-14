@@ -432,7 +432,7 @@ public class MPPOrder extends X_PP_Order implements DocAction
 		if( is_ValueChanged(MPPOrder.COLUMNNAME_QtyDelivered)
 				|| is_ValueChanged(MPPOrder.COLUMNNAME_QtyOrdered))
 		{	
-			orderStock();
+			//orderStock();
 		}
 
 		
@@ -489,7 +489,7 @@ public class MPPOrder extends X_PP_Order implements DocAction
 		
 		// Un-Order Stock
 		setQtyOrdered(Env.ZERO);
-		orderStock();
+		//orderStock();
 
 		return true;
 	} //	beforeDelete
@@ -592,7 +592,7 @@ public class MPPOrder extends X_PP_Order implements DocAction
 		else
 		{
 			reserveStock(lines);
-			orderStock();
+			//orderStock();
 		}
 		
 		m_processMsg = ModelValidationEngine.get().fireDocValidate(this, ModelValidator.TIMING_AFTER_PREPARE);
@@ -603,7 +603,7 @@ public class MPPOrder extends X_PP_Order implements DocAction
 		return DocAction.STATUS_InProgress;
 	} //	prepareIt
 
-	private void orderStock()
+	public void orderStock()
 	{
 		MProduct product = getM_Product();
 		if (!product.isStocked())
@@ -777,7 +777,7 @@ public class MPPOrder extends X_PP_Order implements DocAction
 			saveEx(get_TrxName());
 		}	
 		
-		orderStock(); // Clear Ordered Quantities
+		//orderStock(); // Clear Ordered Quantities
 		reserveStock(getLines()); //	Clear Reservations
 		
 		m_processMsg = ModelValidationEngine.get().fireDocValidate(this,ModelValidator.TIMING_AFTER_VOID);
@@ -837,7 +837,7 @@ public class MPPOrder extends X_PP_Order implements DocAction
 			saveEx(get_TrxName());
 		}	
 	
-		orderStock(); // Clear Ordered Quantities
+		//orderStock(); // Clear Ordered Quantities
 		reserveStock(getLines()); //	Clear Reservations
 		
 		setDocStatus(DOCSTATUS_Closed);

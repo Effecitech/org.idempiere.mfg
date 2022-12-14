@@ -938,6 +938,7 @@ ValueChangeListener,Serializable,WTableModelListener
 							order.saveEx();
 						}
 					}
+					order.orderStock();
 				}});
 		}
 		catch (Exception e)
