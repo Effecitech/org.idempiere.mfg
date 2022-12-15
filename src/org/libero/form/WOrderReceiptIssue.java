@@ -23,7 +23,6 @@ import java.sql.Timestamp;
 import java.util.Properties;
 
 import org.adempiere.exceptions.AdempiereException;
-import org.adempiere.util.Callback;
 import org.adempiere.webui.component.Button;
 import org.adempiere.webui.component.Combobox;
 import org.adempiere.webui.component.Grid;
@@ -50,7 +49,6 @@ import org.adempiere.webui.panel.ADForm;
 import org.adempiere.webui.panel.CustomForm;
 import org.adempiere.webui.panel.IFormController;
 import org.adempiere.webui.session.SessionManager;
-import org.adempiere.webui.window.FDialog;
 import org.compiere.minigrid.IMiniTable;
 import org.compiere.model.GridField;
 import org.compiere.model.GridFieldVO;
@@ -75,11 +73,11 @@ import org.zkoss.zk.ui.event.EventListener;
 import org.zkoss.zk.ui.event.Events;
 import org.zkoss.zul.Borderlayout;
 import org.zkoss.zul.Center;
-import org.zkoss.zul.North;
-import org.zkoss.zul.South;
 import org.zkoss.zul.Html;
 import org.zkoss.zul.Messagebox;
+import org.zkoss.zul.North;
 import org.zkoss.zul.Row;
+import org.zkoss.zul.South;
 import org.zkoss.zul.Space;
 import org.zkoss.zul.Tabpanel;
 import org.zkoss.zul.Tabpanels;
@@ -494,7 +492,7 @@ ValueChangeListener,Serializable,WTableModelListener
 		    	        new org.zkoss.zk.ui.event.EventListener(){
 		    	            public void onEvent(Event e){
 		    	            	 if("onOK".equals(e.getName())){
-		    	     				if (cmd_process(false, issue))
+		    	     				if (cmd_process(true, issue))
 			    	    				{
 				    						dispose();
 				    						return;
@@ -938,11 +936,16 @@ ValueChangeListener,Serializable,WTableModelListener
 							order.saveEx();
 						}
 					}
-					order.orderStock();
 					
-					order.setDocAction(MPPOrder.ACTION_Close);
+					/*MProduct product = order.getM_Product();
+					if(product.isStocked()) {
+						MStorageOnHand.add(Env.getCtx(), getM_Warehouse_ID(), getM_Locator_ID(), product.getM_Product_ID(), 0, order.getQtyEntered(), new Timestamp(new Date().getTime()) ,trxName);
+						MStorageReservation.add(Env.getCtx(), getM_Warehouse_ID(), product.getM_Product_ID(), 0, order.getQtyEntered().negate(), true, trxName);
+					}*/
+					
+					/*order.setDocAction(MPPOrder.ACTION_Close);
 					order.processIt(MPPOrder.ACTION_Close);
-					order.saveEx();
+					order.saveEx();*/
 				}});
 		}
 		catch (Exception e)

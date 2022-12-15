@@ -489,7 +489,7 @@ public class MPPOrder extends X_PP_Order implements DocAction
 		
 		// Un-Order Stock
 		setQtyOrdered(Env.ZERO);
-		//orderStock();
+		orderStock();
 
 		return true;
 	} //	beforeDelete
@@ -777,7 +777,7 @@ public class MPPOrder extends X_PP_Order implements DocAction
 			saveEx(get_TrxName());
 		}	
 		
-		//orderStock(); // Clear Ordered Quantities
+		orderStock(); // Clear Ordered Quantities
 		reserveStock(getLines()); //	Clear Reservations
 		
 		m_processMsg = ModelValidationEngine.get().fireDocValidate(this,ModelValidator.TIMING_AFTER_VOID);
@@ -837,7 +837,7 @@ public class MPPOrder extends X_PP_Order implements DocAction
 			saveEx(get_TrxName());
 		}	
 	
-		//orderStock(); // Clear Ordered Quantities
+		orderStock(); // Clear Ordered Quantities
 		reserveStock(getLines()); //	Clear Reservations
 		
 		setDocStatus(DOCSTATUS_Closed);

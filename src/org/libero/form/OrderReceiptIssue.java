@@ -303,7 +303,7 @@ public class OrderReceiptIssue extends GenForm {
 
 				MPPOrder.createIssue(order, PP_Order_BOMLine_ID, movementDate,
 						qtyToDeliver, qtyScrapComponent, Env.ZERO, storages,
-						false);
+						true);
 			}
 		}
 	}
