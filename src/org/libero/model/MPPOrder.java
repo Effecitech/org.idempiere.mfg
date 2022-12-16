@@ -837,8 +837,8 @@ public class MPPOrder extends X_PP_Order implements DocAction
 			saveEx(get_TrxName());
 		}	
 	
-		orderStock(); // Clear Ordered Quantities
-		reserveStock(getLines()); //	Clear Reservations
+		//orderStock(); // Clear Ordered Quantities
+		//reserveStock(getLines()); //	Clear Reservations
 		
 		setDocStatus(DOCSTATUS_Closed);
 		//setProcessed(true);

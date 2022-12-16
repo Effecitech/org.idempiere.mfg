@@ -16,10 +16,10 @@
  *****************************************************************************/
 package org.libero.form;
 
-
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
+import java.util.Date;
 import java.util.Properties;
 
 import org.adempiere.exceptions.AdempiereException;
@@ -58,7 +58,9 @@ import org.compiere.model.MLocatorLookup;
 import org.compiere.model.MLookup;
 import org.compiere.model.MLookupFactory;
 import org.compiere.model.MProduct;
+import org.compiere.model.MStorageOnHand;
 import org.compiere.model.MTab;
+import org.compiere.model.MWarehouse;
 import org.compiere.model.MWindow;
 import org.compiere.util.DisplayType;
 import org.compiere.util.Env;
@@ -83,32 +85,29 @@ import org.zkoss.zul.Tabpanel;
 import org.zkoss.zul.Tabpanels;
 
 /**
- *  @author Cristina Ghita, www.arhipac.ro
- *  @author Adi Takacs, www.arhipac.ro
- *  @author victor.perez@e-evolution.com, www.e-evolution.com
+ * @author Cristina Ghita, www.arhipac.ro
+ * @author Adi Takacs, www.arhipac.ro
+ * @author victor.perez@e-evolution.com, www.e-evolution.com
  */
 
-public class WOrderReceiptIssue extends OrderReceiptIssue  implements IFormController, EventListener,  
-ValueChangeListener,Serializable,WTableModelListener  
-{
+public class WOrderReceiptIssue extends OrderReceiptIssue
+		implements IFormController, EventListener, ValueChangeListener, Serializable, WTableModelListener {
 
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = -3451096834043054791L;
-	/**	Window No			*/
+	/** Window No */
 	private int m_WindowNo = 0;
 	private String m_sql;
 	private MPPOrder m_PP_order = null;
-	
+
 	private Panel Generate = new Panel();
 	private Panel PanelBottom = new Panel();
 	private Panel mainPanel = new Panel();
 	private Panel northPanel = new Panel();
 	private Button Process = new Button();
-	
-	
-	
+
 	private Label attributeLabel = new Label();
 	private Label orderedQtyLabel = new Label();
 	private Label deliveredQtyLabel = new Label();
@@ -118,18 +117,17 @@ ValueChangeListener,Serializable,WTableModelListener
 	private Label movementDateLabel = new Label();
 	private Label rejectQtyLabel = new Label();
 	private Label resourceLabel = new Label();
-	
-	
+
 	private CustomForm form = new CustomForm();
 	private Borderlayout ReceiptIssueOrder = new Borderlayout();
 	private Tabbox TabsReceiptsIssue = new Tabbox();
 	private Html info = new Html();
 	private Grid fieldGrid = GridFactory.newGridLayout();
 	private WPAttributeEditor attribute = null;
-	
+
 	private Label warehouseLabel = new Label();
 	private Label scrapQtyLabel = new Label();
-	private Label productLabel = new Label(Msg.translate(Env.getCtx(),"M_Product_ID"));
+	private Label productLabel = new Label(Msg.translate(Env.getCtx(), "M_Product_ID"));
 	private Label uomLabel = new Label(Msg.translate(Env.getCtx(), "C_UOM_ID"));
 	private Label uomorderLabel = new Label(Msg.translate(Env.getCtx(), "Altert UOM"));
 	private Label locatorLabel = new Label(Msg.translate(Env.getCtx(), "M_Locator_ID"));
@@ -137,136 +135,144 @@ ValueChangeListener,Serializable,WTableModelListener
 	private Label labelcombo = new Label(Msg.translate(Env.getCtx(), "DeliveryRule"));
 	private Label QtyBatchsLabel = new Label();
 	private Label QtyBatchSizeLabel = new Label();
-	
+
 	private Textbox backflushGroup = new Textbox();
-	
-	private WNumberEditor orderedQtyField = new WNumberEditor("QtyOrdered", false, false, false, DisplayType.Quantity, "QtyOrdered");
-	private WNumberEditor deliveredQtyField = new WNumberEditor("QtyDelivered", false, false, false, DisplayType.Quantity, "QtyDelivered");
-	private WNumberEditor openQtyField = new WNumberEditor("QtyOpen", false, false, false, DisplayType.Quantity, "QtyOpen");
-	private WNumberEditor toDeliverQty = new WNumberEditor("QtyToDeliver", true, false, true, DisplayType.Quantity, "QtyToDeliver");
-	private WNumberEditor rejectQty = new WNumberEditor("Qtyreject", false, false, true, DisplayType.Quantity, "QtyReject");
-	private WNumberEditor scrapQtyField = new WNumberEditor("Qtyscrap", false, false, true, DisplayType.Quantity, "Qtyscrap");
-	private WNumberEditor qtyBatchsField = new WNumberEditor("QtyBatchs", false, false, false, DisplayType.Quantity, "QtyBatchs");
-	private WNumberEditor qtyBatchSizeField = new WNumberEditor("QtyBatchSize", false, false, false, DisplayType.Quantity, "QtyBatchSize");
-	
+
+	private WNumberEditor orderedQtyField = new WNumberEditor("QtyOrdered", false, false, false, DisplayType.Quantity,
+			"QtyOrdered");
+	private WNumberEditor deliveredQtyField = new WNumberEditor("QtyDelivered", false, false, false,
+			DisplayType.Quantity, "QtyDelivered");
+	private WNumberEditor openQtyField = new WNumberEditor("QtyOpen", false, false, false, DisplayType.Quantity,
+			"QtyOpen");
+	private WNumberEditor toDeliverQty = new WNumberEditor("QtyToDeliver", true, false, true, DisplayType.Quantity,
+			"QtyToDeliver");
+	private WNumberEditor rejectQty = new WNumberEditor("Qtyreject", false, false, true, DisplayType.Quantity,
+			"QtyReject");
+	private WNumberEditor scrapQtyField = new WNumberEditor("Qtyscrap", false, false, true, DisplayType.Quantity,
+			"Qtyscrap");
+	private WNumberEditor qtyBatchsField = new WNumberEditor("QtyBatchs", false, false, false, DisplayType.Quantity,
+			"QtyBatchs");
+	private WNumberEditor qtyBatchSizeField = new WNumberEditor("QtyBatchSize", false, false, false,
+			DisplayType.Quantity, "QtyBatchSize");
+
 	private WSearchEditor orderField = null;
 	private WSearchEditor resourceField = null;
 	private WSearchEditor warehouseField = null;
 	private WSearchEditor productField = null;
 	private WSearchEditor uomField = null;
 	private WSearchEditor uomorderField = null;
-	
+
 	private WListbox issue = ListboxFactory.newDataTable();
-	private WDateEditor movementDateField = new WDateEditor("MovementDate", true, false, true,  "MovementDate");	
-	
+	private WDateEditor movementDateField = new WDateEditor("MovementDate", true, false, true, "MovementDate");
+
 	private WLocatorEditor locatorField = null;
-	
+
 	private Combobox pickcombo = new Combobox();
-	
 
 	/**
-	 *	Initialize Panel
-	 *  @param WindowNo window
-	 *  @param frame frame
+	 * Initialize Panel
+	 * 
+	 * @param WindowNo window
+	 * @param frame    frame
 	 */
-	
-	public WOrderReceiptIssue() 
-	{
+
+	public WOrderReceiptIssue() {
 		Env.setContext(Env.getCtx(), form.getWindowNo(), "IsSOTrx", "Y");
-		try 
-		{
-			//	UI
+		try {
+			// UI
 			fillPicks();
 			jbInit();
 			//
 			dynInit();
 			pickcombo.addEventListener(Events.ON_CHANGE, this);
 
-		} 
-		catch (Exception e) 
-		{
+			/* Set Date */
+			movementDateField.setValue(new Timestamp(new Date().getTime()));
+
+			/* Set Warehouser */
+			int m_warehouse_id = Env.getContextAsInt(Env.getCtx(), "#M_Warehouse_ID");
+			if (m_warehouse_id > 0) {
+				MLocator locator = MLocator.getDefault(MWarehouse.get(m_warehouse_id));
+				if (locator != null) {
+					locatorField.setValue(locator.getM_Locator_ID());
+				}
+			}
+
+		} catch (Exception e) {
 			throw new AdempiereException(e);
 		}
-	} //	init
+	} // init
 
 	/**
-	 *	Fill Picks
-	 *		Column_ID from C_Order
-	 *	This is only run as part of the windows initialization process
-	 *  @throws Exception if Lookups cannot be initialized
+	 * Fill Picks Column_ID from C_Order This is only run as part of the windows
+	 * initialization process
+	 * 
+	 * @throws Exception if Lookups cannot be initialized
 	 */
-	private void fillPicks() throws Exception 
-	{
+	private void fillPicks() throws Exception {
 
 		Properties ctx = Env.getCtx();
 		Language language = Language.getLoginLanguage(); // Base Language
 		MLookup orderLookup = MLookupFactory.get(ctx, m_WindowNo,
-											MColumn.getColumn_ID(MPPOrder.Table_Name, MPPOrder.COLUMNNAME_PP_Order_ID),
-											DisplayType.Search, language, "PP_Order_ID", 0, false,
-											"PP_Order.DocStatus = '" + MPPOrder.DOCACTION_Complete + "'");
+				MColumn.getColumn_ID(MPPOrder.Table_Name, MPPOrder.COLUMNNAME_PP_Order_ID), DisplayType.Search,
+				language, "PP_Order_ID", 0, false, "PP_Order.DocStatus = '" + MPPOrder.DOCACTION_Complete + "'");
 
 		orderField = new WSearchEditor(MPPOrder.COLUMNNAME_PP_Order_ID, false, false, true, orderLookup);
 		orderField.addValueChangeListener(this);
 
 		MLookup resourceLookup = MLookupFactory.get(ctx, m_WindowNo, 0,
-											   MColumn.getColumn_ID(MPPOrder.Table_Name, MPPOrder.COLUMNNAME_S_Resource_ID),
-											   DisplayType.TableDir);
+				MColumn.getColumn_ID(MPPOrder.Table_Name, MPPOrder.COLUMNNAME_S_Resource_ID), DisplayType.TableDir);
 		resourceField = new WSearchEditor(MPPOrder.COLUMNNAME_S_Resource_ID, false, false, false, resourceLookup);
 
 		MLookup warehouseLookup = MLookupFactory.get(ctx, m_WindowNo, 0,
-												MColumn.getColumn_ID(MPPOrder.Table_Name, MPPOrder.COLUMNNAME_M_Warehouse_ID),
-												DisplayType.TableDir);
+				MColumn.getColumn_ID(MPPOrder.Table_Name, MPPOrder.COLUMNNAME_M_Warehouse_ID), DisplayType.TableDir);
 		warehouseField = new WSearchEditor(MPPOrder.COLUMNNAME_M_Warehouse_ID, false, false, false, warehouseLookup);
 
 		MLookup productLookup = MLookupFactory.get(ctx, m_WindowNo, 0,
-											  	   MColumn.getColumn_ID(MPPOrder.Table_Name, MPPOrder.COLUMNNAME_M_Product_ID),
-											  	   DisplayType.TableDir);
+				MColumn.getColumn_ID(MPPOrder.Table_Name, MPPOrder.COLUMNNAME_M_Product_ID), DisplayType.TableDir);
 		productField = new WSearchEditor(MPPOrder.COLUMNNAME_M_Product_ID, false, false, false, productLookup);
 
 		MLookup uomLookup = MLookupFactory.get(ctx, m_WindowNo, 0,
-											   MColumn.getColumn_ID(MPPOrder.Table_Name, MPPOrder.COLUMNNAME_C_UOM_ID),
-											   DisplayType.TableDir);
+				MColumn.getColumn_ID(MPPOrder.Table_Name, MPPOrder.COLUMNNAME_C_UOM_ID), DisplayType.TableDir);
 		uomField = new WSearchEditor(MPPOrder.COLUMNNAME_C_UOM_ID, false, false, false, uomLookup);
 
 		MLookup uomOrderLookup = MLookupFactory.get(ctx, m_WindowNo, 0,
-													MColumn.getColumn_ID(MPPOrder.Table_Name, MPPOrder.COLUMNNAME_C_UOM_ID),
-													DisplayType.TableDir);
+				MColumn.getColumn_ID(MPPOrder.Table_Name, MPPOrder.COLUMNNAME_C_UOM_ID), DisplayType.TableDir);
 		uomorderField = new WSearchEditor(MPPOrder.COLUMNNAME_C_UOM_ID, false, false, false, uomOrderLookup);
 
 		MLocatorLookup locatorL = new MLocatorLookup(ctx, m_WindowNo);
 		locatorField = new WLocatorEditor(MLocator.COLUMNNAME_M_Locator_ID, true, false, true, locatorL, m_WindowNo);
 
-		
-		//  Tab, Window
+		// Tab, Window
 		int m_Window = MWindow.getWindow_ID("Manufacturing Order");
-		GridFieldVO vo = GridFieldVO.createStdField(ctx, m_WindowNo, 0,m_Window, MTab.getTab_ID(m_Window, "Manufacturing Order"), 
-													false, false, false);
+		GridFieldVO vo = GridFieldVO.createStdField(ctx, m_WindowNo, 0, m_Window,
+				MTab.getTab_ID(m_Window, "Manufacturing Order"), false, false, false);
 		vo.AD_Column_ID = MColumn.getColumn_ID(MPPOrder.Table_Name, MPPOrder.COLUMNNAME_M_AttributeSetInstance_ID);
 		vo.ColumnName = MPPOrder.COLUMNNAME_M_AttributeSetInstance_ID;
-		vo.displayType = DisplayType.PAttribute;  
+		vo.displayType = DisplayType.PAttribute;
 
 		GridField field = new GridField(vo);
 		// M_AttributeSetInstance_ID
-		attribute = new WPAttributeEditor(field.getGridTab(),field);
+		attribute = new WPAttributeEditor(field.getGridTab(), field);
 		attribute.setValue(0);
 		// 4Layers - Further init
 		scrapQtyField.setValue(Env.ZERO);
 		rejectQty.setValue(Env.ZERO);
 		// 4Layers - end
-		pickcombo.appendItem(Msg.translate(Env.getCtx(),"IsBackflush"), 1);
-		pickcombo.appendItem(Msg.translate(Env.getCtx(),"OnlyIssue"),2);
-		pickcombo.appendItem(Msg.translate(Env.getCtx(),"OnlyReceipt"),3);
+		pickcombo.appendItem(Msg.translate(Env.getCtx(), "IsBackflush"), 1);
+		pickcombo.appendItem(Msg.translate(Env.getCtx(), "OnlyIssue"), 2);
+		pickcombo.appendItem(Msg.translate(Env.getCtx(), "OnlyReceipt"), 3);
 		pickcombo.addEventListener(Events.ON_CHANGE, this);
 		Process.addActionListener(this);
 		toDeliverQty.addValueChangeListener(this);
 		scrapQtyField.addValueChangeListener(this);
-	} //	fillPicks
-	
+	} // fillPicks
+
 	/**
-	 *  Static Init.
-	 *  Places static visual elements into the window.
-	 *  This is only run as part of the windows initialization process
-	 *  <pre>
+	 * Static Init. Places static visual elements into the window. This is only run
+	 * as part of the windows initialization process
+	 * 
+	 * <pre>
 	 *  mainPanel
 	 *      northPanel
 	 *      centerPanel
@@ -274,17 +280,17 @@ ValueChangeListener,Serializable,WTableModelListener
 	 *          xPanel
 	 *          xMathedTo
 	 *      southPanel
-	 *  </pre>
-	 *  @throws Exception
+	 * </pre>
+	 * 
+	 * @throws Exception
 	 */
-	private void jbInit() throws Exception
-	{
+	private void jbInit() throws Exception {
 		Center center = new Center();
 		South south = new South();
 		North north = new North();
-		form.appendChild(mainPanel);	 
+		form.appendChild(mainPanel);
 		mainPanel.appendChild(TabsReceiptsIssue);
-		mainPanel.setStyle("width: 100%; height: 100%; padding: 0; margin: 0");		
+		mainPanel.setStyle("width: 100%; height: 100%; padding: 0; margin: 0");
 		ReceiptIssueOrder.setWidth("100%");
 		ReceiptIssueOrder.setHeight("99%");
 		ReceiptIssueOrder.appendChild(north);
@@ -292,73 +298,73 @@ ValueChangeListener,Serializable,WTableModelListener
 		northPanel.appendChild(fieldGrid);
 		orderLabel.setText(Msg.translate(Env.getCtx(), "PP_Order_ID"));
 		Rows tmpRows = fieldGrid.newRows();
-		
+
 		// 1st
 		Row tmpRow = tmpRows.newRow();
-		
+
 		tmpRow.appendChild(orderLabel.rightAlign());
-		tmpRow.appendChild(orderField.getComponent());		
+		tmpRow.appendChild(orderField.getComponent());
 		resourceLabel.setText(Msg.translate(Env.getCtx(), "S_Resource_ID"));
 		tmpRow.appendChild(resourceLabel.rightAlign());
-		tmpRow.appendChild(resourceField.getComponent());		
+		tmpRow.appendChild(resourceField.getComponent());
 		warehouseLabel.setText(Msg.translate(Env.getCtx(), "M_Warehouse_ID"));
 		tmpRow.appendChild(warehouseLabel.rightAlign());
 		tmpRow.appendChild(warehouseField.getComponent());
-		
+
 		// Product 2nd
 		tmpRow = tmpRows.newRow();
-		
+
 		tmpRow.appendChild(productLabel.rightAlign());
-		tmpRow.appendChild(productField.getComponent());		
+		tmpRow.appendChild(productField.getComponent());
 		tmpRow.appendChild(uomLabel.rightAlign());
-		tmpRow.appendChild(uomField.getComponent());	
+		tmpRow.appendChild(uomField.getComponent());
 		tmpRow.appendChild(uomorderLabel.rightAlign());
 		tmpRow.appendChild(uomorderField.getComponent());
-		
+
 		tmpRow = tmpRows.newRow();
-		
+
 		orderedQtyLabel.setText(Msg.translate(Env.getCtx(), "QtyOrdered"));
 		tmpRow.appendChild(orderedQtyLabel.rightAlign());
 		tmpRow.appendChild(orderedQtyField.getComponent());
 		deliveredQtyLabel.setText(Msg.translate(Env.getCtx(), "QtyDelivered"));
 		tmpRow.appendChild(deliveredQtyLabel.rightAlign());
-		tmpRow.appendChild(deliveredQtyField.getComponent());	
+		tmpRow.appendChild(deliveredQtyField.getComponent());
 		openQtyLabel.setText(Msg.translate(Env.getCtx(), "QtyOpen"));
 		tmpRow.appendChild(openQtyLabel.rightAlign());
 		tmpRow.appendChild(openQtyField.getComponent());
-		//3rd
+		// 3rd
 		tmpRow = tmpRows.newRow();
-		
+
 		tmpRow.appendChild(productLabel.rightAlign());
-		tmpRow.appendChild(productField.getComponent());		
+		tmpRow.appendChild(productField.getComponent());
 		tmpRow.appendChild(uomLabel.rightAlign());
-		tmpRow.appendChild(uomField.getComponent());	
+		tmpRow.appendChild(uomField.getComponent());
 		tmpRow.appendChild(uomorderLabel.rightAlign());
 		tmpRow.appendChild(uomorderField.getComponent());
-		//4th
+		// 4th
 		tmpRow = tmpRows.newRow();
-		
+
 		QtyBatchsLabel.setText(Msg.translate(Env.getCtx(), "QtyBatchs"));
 		tmpRow.appendChild(QtyBatchsLabel.rightAlign());
 		tmpRow.appendChild(qtyBatchsField.getComponent());
 		QtyBatchSizeLabel.setText(Msg.translate(Env.getCtx(), "QtyBatchSize"));
 		tmpRow.appendChild(QtyBatchSizeLabel.rightAlign());
-		tmpRow.appendChild(qtyBatchSizeField.getComponent());	
+		tmpRow.appendChild(qtyBatchSizeField.getComponent());
 		openQtyLabel.setText(Msg.translate(Env.getCtx(), "QtyOpen"));
 		tmpRow.appendChild(openQtyLabel.rightAlign());
 		tmpRow.appendChild(openQtyField.getComponent());
-		//5th
+		// 5th
 		tmpRow = tmpRows.newRow();
-		
+
 		tmpRow.appendChild(labelcombo.rightAlign());
 		tmpRow.appendChild(pickcombo);
 		tmpRow.appendChild(backflushGroupLabel.rightAlign());
 		tmpRow.appendChild(backflushGroup);
 		tmpRow.appendChild(new Space());
 		tmpRow.appendChild(new Space());
-		//6th
+		// 6th
 		tmpRow = tmpRows.newRow();
-		
+
 		toDeliverQtyLabel.setText(Msg.translate(Env.getCtx(), "QtyToDeliver"));
 		tmpRow.appendChild(toDeliverQtyLabel.rightAlign());
 		tmpRow.appendChild(toDeliverQty.getComponent());
@@ -368,9 +374,9 @@ ValueChangeListener,Serializable,WTableModelListener
 		rejectQtyLabel.setText(Msg.translate(Env.getCtx(), "QtyReject"));
 		tmpRow.appendChild(rejectQtyLabel.rightAlign());
 		tmpRow.appendChild(rejectQty.getComponent());
-		//7th
+		// 7th
 		tmpRow = tmpRows.newRow();
-		
+
 		movementDateLabel.setText(Msg.translate(Env.getCtx(), "MovementDate"));
 		tmpRow.appendChild(movementDateLabel.rightAlign());
 		tmpRow.appendChild(movementDateField.getComponent());
@@ -382,22 +388,22 @@ ValueChangeListener,Serializable,WTableModelListener
 		tmpRow.appendChild(attribute.getComponent());
 		ReceiptIssueOrder.appendChild(center);
 		center.appendChild(issue);
-		ReceiptIssueOrder.appendChild(south);						
-		south.appendChild(PanelBottom);	
-		
+		ReceiptIssueOrder.appendChild(south);
+		south.appendChild(PanelBottom);
+
 		Process.setLabel(Msg.translate(Env.getCtx(), "OK"));
 		PanelBottom.appendChild(Process);
 		PanelBottom.setWidth("100%");
 		PanelBottom.setStyle("text-align:center");
-		
-		Tabs tabs = new Tabs(); 
-		Tab tab1 =new Tab();
-		Tab tab2 =new Tab();
+
+		Tabs tabs = new Tabs();
+		Tab tab1 = new Tab();
+		Tab tab2 = new Tab();
 		tab1.setLabel(Msg.translate(Env.getCtx(), "IsShipConfirm"));
 		tab2.setLabel(Msg.translate(Env.getCtx(), "Generate"));
 		tabs.appendChild(tab1);
 		tabs.appendChild(tab2);
-	
+
 		TabsReceiptsIssue.appendChild(tabs);
 		Tabpanels tabps = new Tabpanels();
 		Tabpanel tabp1 = new Tabpanel();
@@ -417,109 +423,92 @@ ValueChangeListener,Serializable,WTableModelListener
 		Generate.setVisible(true);
 		info.setVisible(true);
 		TabsReceiptsIssue.addEventListener(Events.ON_CHANGE, this);
-	} //  jbInit    
+	} // jbInit
 
 	/**
-	 *  Dynamic Init.
-	 *  Table Layout, Visual, Listener
-	 *  This is only run as part of the windows initialization process
+	 * Dynamic Init. Table Layout, Visual, Listener This is only run as part of the
+	 * windows initialization process
 	 */
-	public void dynInit()
-	{
+	public void dynInit() {
 		disableToDeliver();
 		prepareTable(issue);
 		issue.autoSize();
 		issue.getModel().addTableModelListener(this);
-		issue.setRowCount(0);	
-	} //  dynInit
-	
-	public void prepareTable(IMiniTable miniTable)
-	{
+		issue.setRowCount(0);
+	} // dynInit
+
+	public void prepareTable(IMiniTable miniTable) {
 		configureMiniTable(miniTable);
 	}
-	
+
 	/**
 	 * Called when events occur in the window
 	 */
-	
-	public void onEvent(Event e) throws Exception 
-	{
-		if (e.getName().equals(Events.ON_CANCEL))
-		{
+
+	public void onEvent(Event e) throws Exception {
+		if (e.getName().equals(Events.ON_CANCEL)) {
 			dispose();
 			return;
 		}
 
-		if (e.getTarget().equals(Process))
-		{
-			if (getMovementDate() == null)
-			{
-					Messagebox.show( Msg.getMsg(Env.getCtx(), "NoDate"), "Info",Messagebox.OK, Messagebox.INFORMATION);
+		if (e.getTarget().equals(Process)) {
+			if (getMovementDate() == null) {
+				Messagebox.show(Msg.getMsg(Env.getCtx(), "NoDate"), "Info", Messagebox.OK, Messagebox.INFORMATION);
 				return;
 			}
 
-			if ((isOnlyReceipt() || isBackflush()) && getM_Locator_ID() <= 0) 
-			{
-				Messagebox.show(Msg.getMsg(Env.getCtx(), "NoLocator"),"Info", Messagebox.OK, Messagebox.INFORMATION);
+			if ((isOnlyReceipt() || isBackflush()) && getM_Locator_ID() <= 0) {
+				Messagebox.show(Msg.getMsg(Env.getCtx(), "NoLocator"), "Info", Messagebox.OK, Messagebox.INFORMATION);
 				return;
 			}
-		//  Switch Tabs
+			// Switch Tabs
 			TabsReceiptsIssue.setSelectedIndex(1);
-			
+
 			generateSummaryTable();
 
-/*			int result = -1;			
-			
-			result = Messagebox.show(Msg.getMsg(Env.getCtx(), "Update"),"",Messagebox.OK|Messagebox.CANCEL,Messagebox.QUESTION);
-			 			
-			if ( result == 1)
-			{				
-				final boolean isCloseDocument = (Messagebox.show(Msg.parseTranslation(Env.getCtx(),"@IsCloseDocument@ : &&&&"+  getPP_Order().getDocumentNo()),"",Messagebox.OK|Messagebox.CANCEL,Messagebox.QUESTION) == Messagebox.OK);
+			/*
+			 * int result = -1;
+			 * 
+			 * result = Messagebox.show(Msg.getMsg(Env.getCtx(),
+			 * "Update"),"",Messagebox.OK|Messagebox.CANCEL,Messagebox.QUESTION);
+			 * 
+			 * if ( result == 1) { final boolean isCloseDocument =
+			 * (Messagebox.show(Msg.parseTranslation(Env.getCtx(),"@IsCloseDocument@ : &&&&"
+			 * +
+			 * getPP_Order().getDocumentNo()),"",Messagebox.OK|Messagebox.CANCEL,Messagebox.
+			 * QUESTION) == Messagebox.OK);
+			 * 
+			 * if (cmd_process(isCloseDocument, issue)) { dispose(); return; }
+			 * //Clients.showBusy(TabsReceiptsIssue, null); }
+			 */
 
-				if (cmd_process(isCloseDocument, issue))
-				{
-					dispose();
-					return;
-				}
-				//Clients.showBusy(TabsReceiptsIssue, null);
-			}
-*/
-			
-			//pshepetko msg<
-			Messagebox.show(Msg.getMsg(Env.getCtx(), "Update"), 
-		    	    "Question", Messagebox.OK | Messagebox.CANCEL ,
-		    	    Messagebox.QUESTION,
-		    	        new org.zkoss.zk.ui.event.EventListener(){
-		    	            public void onEvent(Event e){
-		    	            	 if("onOK".equals(e.getName())){
-		    	     				if (cmd_process(true, issue))
-			    	    				{
-				    						dispose();
-				    						return;
-			    	    				}
-		    	     				}
-		    				//	Clients.showBusy(TabsReceiptsIssue, null);
-		    	            }
-		    	        }
-		    	    );
-	 		// pshepetko msg>
-			
+			// pshepetko msg<
+			Messagebox.show(Msg.getMsg(Env.getCtx(), "Update"), "Question", Messagebox.OK | Messagebox.CANCEL,
+					Messagebox.QUESTION, new org.zkoss.zk.ui.event.EventListener() {
+						public void onEvent(Event e) {
+							if ("onOK".equals(e.getName())) {
+								if (cmd_process(true, issue)) {
+									dispose();
+									return;
+								}
+							}
+							// Clients.showBusy(TabsReceiptsIssue, null);
+						}
+					});
+			// pshepetko msg>
+
 			TabsReceiptsIssue.setSelectedIndex(0);
-		}	
+		}
 
-		if (e.getTarget().equals(pickcombo))
-		{
-			if (isOnlyReceipt())
-			{
+		if (e.getTarget().equals(pickcombo)) {
+			if (isOnlyReceipt()) {
 				enableToDeliver();
 				locatorLabel.setVisible(true);
 				locatorField.setVisible(true);
 				attribute.setVisible(true);
 				attributeLabel.setVisible(true);
 				issue.setVisible(false);
-			}
-			else if (isOnlyIssue())
-			{
+			} else if (isOnlyIssue()) {
 				disableToDeliver();
 				locatorLabel.setVisible(false);
 				locatorField.setVisible(false);
@@ -527,9 +516,7 @@ ValueChangeListener,Serializable,WTableModelListener
 				attributeLabel.setVisible(false);
 				issue.setVisible(true);
 				executeQuery();
-			}
-			else if (isBackflush())
-			{
+			} else if (isBackflush()) {
 				enableToDeliver();
 				locatorLabel.setVisible(true);
 				locatorField.setVisible(true);
@@ -538,23 +525,20 @@ ValueChangeListener,Serializable,WTableModelListener
 				issue.setVisible(true);
 				executeQuery();
 			}
-			setToDeliverQty(getOpenQty()); //reset toDeliverQty to openQty
+			setToDeliverQty(getOpenQty()); // reset toDeliverQty to openQty
 		}
 	}
-	
-	public void enableToDeliver()
-	{
+
+	public void enableToDeliver() {
 		setToDeliver(true);
 	}
 
-	public void disableToDeliver()
-	{
+	public void disableToDeliver() {
 		setToDeliver(false);
 	}
-	
-	private void setToDeliver(Boolean state)
-	{
-		toDeliverQty.getComponent().setEnabled(state); 
+
+	private void setToDeliver(Boolean state) {
+		toDeliverQty.getComponent().setEnabled(state);
 		scrapQtyLabel.setVisible(state);
 		scrapQtyField.setVisible(state);
 		rejectQtyLabel.setVisible(state);
@@ -562,43 +546,35 @@ ValueChangeListener,Serializable,WTableModelListener
 	}
 
 	/**
-	 *  Queries for and fills the table in the lower half of the screen
-	 *  This is only run if isBackflush() or isOnlyIssue
+	 * Queries for and fills the table in the lower half of the screen This is only
+	 * run if isBackflush() or isOnlyIssue
 	 */
-	public void executeQuery()
-	{
-		m_sql = m_sql + " ORDER BY obl."+MPPOrderBOMLine.COLUMNNAME_Line;
-		//  reset table
+	public void executeQuery() {
+		m_sql = m_sql + " ORDER BY obl." + MPPOrderBOMLine.COLUMNNAME_Line;
+		// reset table
 		issue.clearTable();
 		executeQuery(issue);
 		issue.repaint();
-	} //  executeQuery
+	} // executeQuery
 
-	
-
-	
-	
-	public void valueChange(ValueChangeEvent e)
-	{
+	public void valueChange(ValueChangeEvent e) {
 		String name = e.getPropertyName();
 		Object value = e.getNewValue();
-		
+
 		if (value == null)
 			return;
 
-		//  PP_Order_ID
-		if (name.equals("PP_Order_ID"))
-		{
+		// PP_Order_ID
+		if (name.equals("PP_Order_ID")) {
 			orderField.setValue(value);
 
 			MPPOrder pp_order = getPP_Order();
-			if (pp_order != null)
-			{
+			if (pp_order != null) {
 				setS_Resource_ID(pp_order.getS_Resource_ID());
 				setM_Warehouse_ID(pp_order.getM_Warehouse_ID());
 				setDeliveredQty(pp_order.getQtyDelivered());
 				setOrderedQty(pp_order.getQtyOrdered());
-				//m_PP_order.getQtyOrdered().subtract(m_PP_order.getQtyDelivered());
+				// m_PP_order.getQtyOrdered().subtract(m_PP_order.getQtyDelivered());
 				setQtyBatchs(pp_order.getQtyBatchs());
 				setQtyBatchSize(pp_order.getQtyBatchSize());
 				setOpenQty(pp_order.getQtyOrdered().subtract(pp_order.getQtyDelivered()));
@@ -607,354 +583,279 @@ ValueChangeListener,Serializable,WTableModelListener
 				MProduct m_product = MProduct.get(Env.getCtx(), pp_order.getM_Product_ID());
 				setC_UOM_ID(m_product.getC_UOM_ID());
 				setOrder_UOM_ID(pp_order.getC_UOM_ID());
-				//Default ASI defined from the Parent BOM Order
+				// Default ASI defined from the Parent BOM Order
 				setM_AttributeSetInstance_ID(pp_order.getM_Product().getM_AttributeSetInstance_ID());
-				pickcombo.setSelectedIndex(0);  //default to first entry - isBackflush
-				Event ev = new Event(Events.ON_CHANGE,pickcombo);
+				pickcombo.setSelectedIndex(0); // default to first entry - isBackflush
+				Event ev = new Event(Events.ON_CHANGE, pickcombo);
 				try {
 					onEvent(ev);
-				} catch (Exception e1) {					
+				} catch (Exception e1) {
 					throw new AdempiereException(e1);
 				}
 			}
-		} //  PP_Order_ID
-		
-		if (name.equals(toDeliverQty.getColumnName()) || name.equals(scrapQtyField.getColumnName()))
-		{
-			if (getPP_Order_ID() > 0 && isBackflush())
-			{
+		} // PP_Order_ID
+
+		if (name.equals(toDeliverQty.getColumnName()) || name.equals(scrapQtyField.getColumnName())) {
+			if (getPP_Order_ID() > 0 && isBackflush()) {
 				executeQuery();
 			}
 		}
 	}
-	
-	
-	public void showMessage(String message, boolean error)
-	{
-		try
-		{
-			if(!error)
-				Messagebox.show(message, "Info",Messagebox.OK, Messagebox.INFORMATION);
+
+	public void showMessage(String message, boolean error) {
+		try {
+			if (!error)
+				Messagebox.show(message, "Info", Messagebox.OK, Messagebox.INFORMATION);
 			else
-				Messagebox.show(message,"",Messagebox.OK,Messagebox.ERROR);
-		}
-		catch(Exception e)
-		{
-			
+				Messagebox.show(message, "", Messagebox.OK, Messagebox.ERROR);
+		} catch (Exception e) {
+
 		}
 	}
 
-	
-
 	/**
-	 *  Generate Summary of Issue/Receipt.
+	 * Generate Summary of Issue/Receipt.
 	 */
-	private void generateSummaryTable() 
-	{
-		info.setContent(generateSummaryTable(issue, productField.getDisplay(), 
-				uomField.getDisplay(), 
-				attribute.getDisplay(), 
-				toDeliverQty.getDisplay(), 
-				deliveredQtyField.getDisplay(),
-				scrapQtyField.getDisplay(),
-				isBackflush(), isOnlyIssue(), isOnlyReceipt()		
-		));
-		
-	} //  generateInvoices_complete
+	private void generateSummaryTable() {
+		info.setContent(generateSummaryTable(issue, productField.getDisplay(), uomField.getDisplay(),
+				attribute.getDisplay(), toDeliverQty.getDisplay(), deliveredQtyField.getDisplay(),
+				scrapQtyField.getDisplay(), isBackflush(), isOnlyIssue(), isOnlyReceipt()));
 
+	} // generateInvoices_complete
 
 	/**
 	 * Determines whether the Delivery Rule is set to 'OnlyReciept'
-	 * @return	
+	 * 
+	 * @return
 	 */
-	protected boolean isOnlyReceipt() 
-	{
+	protected boolean isOnlyReceipt() {
 		super.setIsOnlyReceipt(pickcombo.getText().equals("OnlyReceipt"));
 		return super.isOnlyReceipt();
 	}
-	
+
 	/**
 	 * Determines whether the Delivery Rule is set to 'OnlyIssue'
-	 * @return	
+	 * 
+	 * @return
 	 */
-	protected boolean isOnlyIssue() 
-	{
+	protected boolean isOnlyIssue() {
 		super.setIsOnlyIssue(pickcombo.getText().equals("OnlyIssue"));
 		return super.isOnlyIssue();
 	}
 
 	/**
 	 * Determines whether the Delivery Rule is set to 'isBackflush'
-	 * @return	
+	 * 
+	 * @return
 	 */
-	protected boolean isBackflush()
-	{
+	protected boolean isBackflush() {
 		super.setIsBackflush(pickcombo.getText().equals("IsBackflush"));
 		return super.isBackflush();
 	}
 
-	protected Timestamp getMovementDate()
-	{
+	protected Timestamp getMovementDate() {
 		return (Timestamp) movementDateField.getValue();
 	}
 
-	
-	protected BigDecimal getOrderedQty()
-	{
+	protected BigDecimal getOrderedQty() {
 		BigDecimal bd = (BigDecimal) orderedQtyField.getValue();
 		return bd != null ? bd : Env.ZERO;
 	}
 
-	protected void setOrderedQty(BigDecimal qty)
-	{
+	protected void setOrderedQty(BigDecimal qty) {
 		this.orderedQtyField.setValue(qty);
 	}
 
-	protected BigDecimal getDeliveredQty()
-	{
+	protected BigDecimal getDeliveredQty() {
 		BigDecimal bd = (BigDecimal) deliveredQtyField.getValue();
 		return bd != null ? bd : Env.ZERO;
 	}
-	
-	protected void setDeliveredQty(BigDecimal qty)
-	{
+
+	protected void setDeliveredQty(BigDecimal qty) {
 		deliveredQtyField.setValue(qty);
 	}
 
-	protected BigDecimal getToDeliverQty()
-	{
+	protected BigDecimal getToDeliverQty() {
 		BigDecimal bd = (BigDecimal) toDeliverQty.getValue();
 		return bd != null ? bd : Env.ZERO;
 	}
-	
-	protected void setToDeliverQty(BigDecimal qty)
-	{
+
+	protected void setToDeliverQty(BigDecimal qty) {
 		toDeliverQty.setValue(qty);
 	}
 
-	protected BigDecimal getScrapQty()
-	{
+	protected BigDecimal getScrapQty() {
 		BigDecimal bd = (BigDecimal) scrapQtyField.getValue();
 		return bd != null ? bd : Env.ZERO;
 	}
 
-	protected BigDecimal getRejectQty() 
-	{
+	protected BigDecimal getRejectQty() {
 		BigDecimal bd = (BigDecimal) rejectQty.getValue();
 		return bd != null ? bd : Env.ZERO;
 	}
 
-	protected BigDecimal getOpenQty()
-	{
+	protected BigDecimal getOpenQty() {
 		BigDecimal bd = (BigDecimal) openQtyField.getValue();
 		return bd != null ? bd : Env.ZERO;
 	}
-	protected void setOpenQty(BigDecimal qty)
-	{
+
+	protected void setOpenQty(BigDecimal qty) {
 		openQtyField.setValue(qty);
 	}
-	
-	protected BigDecimal getQtyBatchs()
-	{
+
+	protected BigDecimal getQtyBatchs() {
 		BigDecimal bd = (BigDecimal) qtyBatchsField.getValue();
 		return bd != null ? bd : Env.ZERO;
 	}
-	protected void setQtyBatchs(BigDecimal qty)
-	{
+
+	protected void setQtyBatchs(BigDecimal qty) {
 		qtyBatchsField.setValue(qty);
 	}
-	
-	protected BigDecimal getQtyBatchSize()
-	{
+
+	protected BigDecimal getQtyBatchSize() {
 		BigDecimal bd = (BigDecimal) qtyBatchSizeField.getValue();
 		return bd != null ? bd : Env.ZERO;
 	}
-	
-	protected void setQtyBatchSize(BigDecimal qty)
-	{
+
+	protected void setQtyBatchSize(BigDecimal qty) {
 		qtyBatchSizeField.setValue(qty);
 	}
 
-	protected int getM_AttributeSetInstance_ID()
-	{
+	protected int getM_AttributeSetInstance_ID() {
 		Integer ii = (Integer) attribute.getValue();
 		return ii != null ? ii.intValue() : 0;
 	}
-	
-	protected void setM_AttributeSetInstance_ID(int M_AttributeSetInstance_ID)
-	{
+
+	protected void setM_AttributeSetInstance_ID(int M_AttributeSetInstance_ID) {
 		attribute.setValue(M_AttributeSetInstance_ID);
 	}
 
-	protected int getM_Locator_ID()
-	{
+	protected int getM_Locator_ID() {
 		Integer ii = (Integer) locatorField.getValue();
 		return ii != null ? ii.intValue() : 0;
 	}
-	
-	protected void setM_Locator_ID(int M_Locator_ID)
-	{
+
+	protected void setM_Locator_ID(int M_Locator_ID) {
 		locatorField.setValue(M_Locator_ID);
 	}
 
-	protected int getPP_Order_ID()
-	{
+	protected int getPP_Order_ID() {
 		Integer ii = (Integer) orderField.getValue();
 		return ii != null ? ii.intValue() : 0;
-	}	
-	
-	protected MPPOrder getPP_Order()
-	{
+	}
+
+	protected MPPOrder getPP_Order() {
 		int id = getPP_Order_ID();
-		if (id <= 0)
-		{
+		if (id <= 0) {
 			m_PP_order = null;
 			return null;
 		}
-		if (m_PP_order == null || m_PP_order.get_ID() != id)
-		{
-			
+		if (m_PP_order == null || m_PP_order.get_ID() != id) {
+
 			m_PP_order = new MPPOrder(Env.getCtx(), id, null);
 		}
 		return m_PP_order;
 	}
 
-	protected int getS_Resource_ID()
-	{
+	protected int getS_Resource_ID() {
 		Integer ii = (Integer) resourceField.getValue();
 		return ii != null ? ii.intValue() : 0;
 	}
-	
-	protected void setS_Resource_ID(int S_Resource_ID)
-	{
+
+	protected void setS_Resource_ID(int S_Resource_ID) {
 		resourceField.setValue(S_Resource_ID);
 	}
-	
-	protected int getM_Warehouse_ID()
-	{
+
+	protected int getM_Warehouse_ID() {
 		Integer ii = (Integer) warehouseField.getValue();
 		return ii != null ? ii.intValue() : 0;
 	}
-	
-	protected void setM_Warehouse_ID(int M_Warehouse_ID)
-	{
+
+	protected void setM_Warehouse_ID(int M_Warehouse_ID) {
 		warehouseField.setValue(M_Warehouse_ID);
 	}
-	
-	protected int getM_Product_ID()
-	{
+
+	protected int getM_Product_ID() {
 		Integer ii = (Integer) productField.getValue();
 		return ii != null ? ii.intValue() : 0;
 	}
-	
-	protected void setM_Product_ID(int M_Product_ID)
-	{
+
+	protected void setM_Product_ID(int M_Product_ID) {
 		productField.setValue(M_Product_ID);
 		Env.setContext(Env.getCtx(), m_WindowNo, "M_Product_ID", M_Product_ID);
 	}
-	
-	protected int getC_UOM_ID()
-	{
+
+	protected int getC_UOM_ID() {
 		Integer ii = (Integer) uomField.getValue();
 		return ii != null ? ii.intValue() : 0;
 	}
-	
-	protected void setC_UOM_ID(int C_UOM_ID)
-	{
+
+	protected void setC_UOM_ID(int C_UOM_ID) {
 		uomField.setValue(C_UOM_ID);
 	}
-	
-	protected int getOrder_UOM_ID()
-	{
+
+	protected int getOrder_UOM_ID() {
 		Integer ii = (Integer) uomorderField.getValue();
 		return ii != null ? ii.intValue() : 0;
 	}
-	
-	protected void setOrder_UOM_ID(int C_UOM_ID)
-	{
+
+	protected void setOrder_UOM_ID(int C_UOM_ID) {
 		uomorderField.setValue(C_UOM_ID);
 	}
-	
-	
 
-	public void dispose()
-	{
+	public void dispose() {
 		SessionManager.getAppDesktop().closeActiveWindow();
-	}	//	dispose
+	} // dispose
 
-	
-	public ADForm getForm() 
-	{
+	public ADForm getForm() {
 		return form;
 	}
 
-	
-	public void tableChanged(WTableModelEvent event) 
-	{
-		//nothing
+	public void tableChanged(WTableModelEvent event) {
+		// nothing
 	}
-	public boolean cmd_process(final boolean isCloseDocument, final IMiniTable issue)
-	{
 
-		if (isOnlyReceipt() || isBackflush())
-		{
-			if (getM_Locator_ID() <= 0)
-			{
-				//JOptionPane.showMessageDialog(null, Msg.getMsg(Env.getCtx(),"NoLocator"), "Info", JOptionPane.INFORMATION_MESSAGE);
-				showMessage( Msg.getMsg(Env.getCtx(),"NoLocator"), false);
+	public boolean cmd_process(final boolean isCloseDocument, final IMiniTable issue) {
+
+		if (isOnlyReceipt() || isBackflush()) {
+			if (getM_Locator_ID() <= 0) {
+				// JOptionPane.showMessageDialog(null, Msg.getMsg(Env.getCtx(),"NoLocator"),
+				// "Info", JOptionPane.INFORMATION_MESSAGE);
+				showMessage(Msg.getMsg(Env.getCtx(), "NoLocator"), false);
 			}
 		}
-		if (getPP_Order() == null || getMovementDate() == null)
-		{
+		if (getPP_Order() == null || getMovementDate() == null) {
 			return false;
-		}		
-		try
-		{
+		}
+		try {
 			Trx.run(new TrxRunnable() {
-				public void run(String trxName)
-				{
+				public void run(String trxName) {
 					MPPOrder order = new MPPOrder(Env.getCtx(), getPP_Order_ID(), trxName);
-					if (isBackflush() || isOnlyIssue()) 
-					{
+					if (isBackflush() || isOnlyIssue()) {
 						createIssue(order, issue);
 					}
-					if (isOnlyReceipt() || isBackflush()) 
-					{
-						MPPOrder.createReceipt(order,
-								getMovementDate(),
-								getDeliveredQty(),
-								getToDeliverQty(), 
-								getScrapQty(),
-								getRejectQty(),
-								getM_Locator_ID(),
-								getM_AttributeSetInstance_ID()
-						);
-						if (isCloseDocument)
-						{
+					if (isOnlyReceipt() || isBackflush()) {
+						MPPOrder.createReceipt(order, getMovementDate(), getDeliveredQty(), getToDeliverQty(),
+								getScrapQty(), getRejectQty(), getM_Locator_ID(), getM_AttributeSetInstance_ID());
+						if (isCloseDocument) {
 							order.setDateFinish(getMovementDate());
 							order.closeIt();
 							order.saveEx();
 						}
 					}
-					
+
 					/*MProduct product = order.getM_Product();
-					if(product.isStocked()) {
-						MStorageOnHand.add(Env.getCtx(), getM_Warehouse_ID(), getM_Locator_ID(), product.getM_Product_ID(), 0, order.getQtyEntered(), new Timestamp(new Date().getTime()) ,trxName);
-						MStorageReservation.add(Env.getCtx(), getM_Warehouse_ID(), product.getM_Product_ID(), 0, order.getQtyEntered().negate(), true, trxName);
+					if (product.isStocked()) {
+						MStorageOnHand.add(Env.getCtx(), getM_Warehouse_ID(), getM_Locator_ID(),
+								product.getM_Product_ID(), 0, order.getQtyEntered(), getMovementDate(), trxName);
 					}*/
-					
-					/*order.setDocAction(MPPOrder.ACTION_Close);
-					order.processIt(MPPOrder.ACTION_Close);
-					order.saveEx();*/
-				}});
-		}
-		catch (Exception e)
-		{
+
+				}
+			});
+		} catch (Exception e) {
 			showMessage(e.getLocalizedMessage(), true);
 			return false;
-		}
-		finally
-		{
+		} finally {
 			m_PP_order = null;
 		}
 
