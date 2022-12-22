@@ -18,6 +18,7 @@ import org.adempiere.exceptions.DBException;
 import org.compiere.model.MLocator;
 import org.compiere.model.MProduct;
 import org.compiere.model.MStorageOnHand;
+import org.compiere.model.MStorageReservation;
 import org.compiere.model.MUOM;
 import org.compiere.model.MWarehouse;
 import org.compiere.model.Query;
@@ -534,9 +535,26 @@ public class MPPOrderBOMLine extends X_PP_Order_BOMLine
 		BigDecimal reserved = difference;//TODO do you need to update storage?
 		int M_Locator_ID = getM_Locator_ID(reserved);
 		//	Update Storage
-		if (!MStorageOnHand.add(getCtx(), getM_Warehouse_ID(), M_Locator_ID,
+		/*if (!MStorageOnHand.add(getCtx(), getM_Warehouse_ID(), M_Locator_ID,
 				getM_Product_ID(), getM_AttributeSetInstance_ID(), Env.ZERO, get_TrxName()))
 		{
+			throw new AdempiereException("Storage Update  Error!");
+		}*/
+		
+		MStorageReservation reservation = MStorageReservation.getCreate(Env.getCtx(), getM_Warehouse_ID(), getM_Product_ID(), getM_AttributeSetInstance_ID(), true, get_TrxName());
+		
+		/* Ensure Reserved Qty >= 0 */
+		if(reservation.getQty().add(reserved).signum() < 0) {
+			if(reserved.signum() < 0) {
+				reserved = reservation.getQty().negate();
+			}else {
+				reserved = reservation.getQty().negate().add(reserved);
+			}
+			
+		}
+		reservation.addQty(reserved);
+		
+		if(!reservation.save(get_TrxName())) {
 			throw new AdempiereException("Storage Update  Error!");
 		}
 		//	update line
