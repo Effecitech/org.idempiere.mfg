@@ -171,9 +171,9 @@ public class MFG_ModelFactory implements IModelFactory {
 			     return new MOrderLine(Env.getCtx(), Record_ID, trxName);
 
 		   } else if (tableName.equals(MOrder.Table_Name)) {
-			     return new MOrder(Env.getCtx(), Record_ID, trxName);*/
+			     return new MOrder(Env.getCtx(), Record_ID, trxName);
 			     
-		   } else if (tableName.equals(LiberoMovementLine.Table_Name)){
+		   } */else if (tableName.equals(LiberoMovementLine.Table_Name)){
 			   
 			   return new LiberoMovementLine(Env.getCtx(), Record_ID, trxName);
 		   }
