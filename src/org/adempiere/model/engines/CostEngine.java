@@ -310,6 +310,25 @@ public class CostEngine
 	{
 		final String whereClause = MCostDetail.COLUMNNAME_PP_Cost_Collector_ID+"=?"
 		+" AND "+MCostDetail.COLUMNNAME_M_CostElement_ID+"=?";
+		
+		
+		//check if there is others costdetail already saved and in case delete it
+		//TODO delete leaving only one
+		int numResult = DB.getSQLValueEx(cc.get_TrxName(), 
+				"SELECT count(*) from M_CostDetail WHERE " + whereClause, 
+				new Object[]{cc.getPP_Cost_Collector_ID(), M_CostElement_ID});
+		
+		if (numResult >1) {
+			DB.executeUpdate("DELETE FROM m_costhistory WHERE m_costdetail_id in (SELECT m_costdetail_id FROM m_costdetail WHERE "
+					+ MCostDetail.COLUMNNAME_PP_Cost_Collector_ID + " = " + cc.getPP_Cost_Collector_ID() + " AND "
+					+ MCostDetail.COLUMNNAME_M_CostElement_ID + " = " + M_CostElement_ID + ")", cc.get_TrxName());
+					
+			
+			DB.executeUpdate("DELETE FROM M_CostDetail WHERE " + whereClause, 
+					new Object[]{cc.getPP_Cost_Collector_ID(), M_CostElement_ID}, true, cc.get_TrxName());
+		}
+		
+		//if there are more than one costdetail already save thow exception 
 		MCostDetail cd = new Query(cc.getCtx(), MCostDetail.Table_Name, whereClause, cc.get_TrxName())
 		.setParameters(new Object[]{cc.getPP_Cost_Collector_ID(), M_CostElement_ID})
 		.firstOnly();
