@@ -452,6 +452,8 @@ public class WOrderReceiptIssue extends OrderReceiptIssue
 		}
 
 		if (e.getTarget().equals(Process)) {
+			checkQtyAvailability();
+
 			if (getMovementDate() == null) {
 				Messagebox.show(Msg.getMsg(Env.getCtx(), "NoDate"), "Info", Messagebox.OK, Messagebox.INFORMATION);
 				return;
@@ -844,11 +846,12 @@ public class WOrderReceiptIssue extends OrderReceiptIssue
 						}
 					}
 
-					/*MProduct product = order.getM_Product();
-					if (product.isStocked()) {
-						MStorageOnHand.add(Env.getCtx(), getM_Warehouse_ID(), getM_Locator_ID(),
-								product.getM_Product_ID(), 0, order.getQtyEntered(), getMovementDate(), trxName);
-					}*/
+					/*
+					 * MProduct product = order.getM_Product(); if (product.isStocked()) {
+					 * MStorageOnHand.add(Env.getCtx(), getM_Warehouse_ID(), getM_Locator_ID(),
+					 * product.getM_Product_ID(), 0, order.getQtyEntered(), getMovementDate(),
+					 * trxName); }
+					 */
 
 				}
 			});
@@ -860,6 +863,27 @@ public class WOrderReceiptIssue extends OrderReceiptIssue
 		}
 
 		return true;
+	}
+
+	private void checkQtyAvailability() {
+		boolean isQtyAvailability = true;
+
+		for (int i = 0; i < issue.getItemCount(); i++) {
+			try {
+				BigDecimal qtyToDeliver = (BigDecimal) issue.getValueAt(i, 8);
+				BigDecimal qtyOnHand = (BigDecimal) issue.getValueAt(i, 10);
+	
+				if (qtyOnHand.compareTo(qtyToDeliver) < 0) {
+					isQtyAvailability = false;
+				}
+			}catch(Exception e) {
+				e.printStackTrace();
+			}
+		}
+
+		if (!isQtyAvailability) {
+			throw new IllegalArgumentException("Alcuni componenti non sono disponibili a magazzino!");
+		}
 	}
 
 }
