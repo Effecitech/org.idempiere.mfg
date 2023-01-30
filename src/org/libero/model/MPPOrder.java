@@ -712,7 +712,7 @@ public class MPPOrder extends X_PP_Order implements DocAction
 			approveIt();
 		}
 		
-		createStandardCosts();
+		createStandardCosts();  //fc20230116
 				
 		//Create the Activity Control
 		autoReportActivities();
@@ -1027,6 +1027,11 @@ public class MPPOrder extends X_PP_Order implements DocAction
 	 */
 	private void explosion()
 	{
+		
+		// PULIZIA DI EVENTUALI MRP COLLEGATE ALLE RIGHE
+		DB.executeUpdate("DELETE FROM pp_mrp where PP_Order_ID=" + getPP_Order_ID(), get_TrxName());
+		
+		
 		// Create BOM Head
 		final MPPProductBOM PP_Product_BOM = MPPProductBOM.get(getCtx(), getPP_Product_BOM_ID());
 		//iterate Product BOM components as more Parent tab records

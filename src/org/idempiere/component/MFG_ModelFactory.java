@@ -167,12 +167,14 @@ public class MFG_ModelFactory implements IModelFactory {
 		   } else if (tableName.equals(MPPProductPlanning.Table_Name)) {
 			     return new MPPProductPlanning(Env.getCtx(), Record_ID, trxName);
 
-		   } else if (tableName.equals(MOrderLine.Table_Name)) {
+		   } /*else if (tableName.equals(MOrderLine.Table_Name)) {
 			     return new MOrderLine(Env.getCtx(), Record_ID, trxName);
 
 		   } else if (tableName.equals(MOrder.Table_Name)) {
 			     return new MOrder(Env.getCtx(), Record_ID, trxName);
-		   }else if (tableName.equals(LiberoMovementLine.Table_Name)){
+			     
+		   } */else if (tableName.equals(LiberoMovementLine.Table_Name)){
+			   
 			   return new LiberoMovementLine(Env.getCtx(), Record_ID, trxName);
 		   }
 		   return null;
@@ -252,13 +254,13 @@ public class MFG_ModelFactory implements IModelFactory {
 		   } else if (tableName.equals(MPPProductPlanning.Table_Name)) {
 			     return new MPPProductPlanning(Env.getCtx(), rs, trxName);
 
-		   } else if (tableName.equals(MOrderLine.Table_Name)) {
+		   } /*else if (tableName.equals(MOrderLine.Table_Name)) {
 			     return new MOrderLine(Env.getCtx(), rs, trxName);
 
 		   } else if (tableName.equals(MOrder.Table_Name)) {
 			     return new MOrder(Env.getCtx(), rs, trxName);
 
-		   }
+		   }*/
 		   return null;
 	}
 
