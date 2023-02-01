@@ -339,4 +339,12 @@
             class="org.libero.form.testForm">
       </form>
    </extension>
+   <extension
+         id="org.libero.process.ChangeBOMProduct"
+         name="ChangeBOMProduct"
+         point="org.adempiere.base.Process">
+      <process
+            class="org.libero.process.ChangeBOMProduct">
+      </process>
+   </extension>
 </plugin>
