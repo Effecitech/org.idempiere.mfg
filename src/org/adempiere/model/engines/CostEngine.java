@@ -106,10 +106,25 @@ public class CostEngine
 				cc.getAD_Org_ID(), //AD_Org_ID,
 				product.getM_AttributeSetInstance_ID(), //M_ASI_ID,
 				element.getM_CostElement_ID());
+		
+		//check if there is others costdetail already saved and in case delete it
+		//TODO delete leaving only one
+		int numResult = DB.getSQLValueEx(cc.get_TrxName(), 
+				"SELECT count(*) from " + MPPOrderCost.Table_Name + " WHERE " + MPPOrderCost.COLUMNNAME_PP_Order_ID + " = ?", 
+				new Object[]{cc.getPP_Order_ID()});
+		
+		if (numResult >1) {
+			
+			DB.executeUpdate("DELETE FROM " + MPPOrderCost.Table_Name + " WHERE " + MPPOrderCost.COLUMNNAME_PP_Order_ID + " = ?", 
+					new Object[]{cc.getPP_Order_ID()}, true, cc.get_TrxName());
+		}
+		
+		
 		MPPOrderCost oc = d.toQuery(MPPOrderCost.class, MPPOrderCost.COLUMNNAME_PP_Order_ID+"=?",
 				new Object[]{cc.getPP_Order_ID()},
 				cc.get_TrxName())
 		.firstOnly();
+		
 		if (oc == null)
 		{
 			return Env.ZERO;
