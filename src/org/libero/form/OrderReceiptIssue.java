@@ -228,12 +228,8 @@ public class OrderReceiptIssue extends GenForm {
 	 * 
 	 * return true; }
 	 */
-
+	
 	public void createIssue(MPPOrder order, IMiniTable issue) {
-		Timestamp movementDate = getMovementDate();
-		Timestamp minGuaranteeDate = movementDate;
-		boolean isCompleteQtyDeliver = false;
-
 		ArrayList[][] m_issue = new ArrayList[issue.getRowCount()][1];
 
 		int row = 0;
@@ -252,6 +248,14 @@ public class OrderReceiptIssue extends GenForm {
 			m_issue[row][0] = data;
 			row++;
 		}
+		
+		createIssue(order, m_issue);
+	}
+
+	public void createIssue(MPPOrder order, ArrayList[][] m_issue) {
+		Timestamp movementDate = getMovementDate();
+		Timestamp minGuaranteeDate = movementDate;
+		boolean isCompleteQtyDeliver = false;
 
 		isCompleteQtyDeliver = MPPOrder.isQtyAvailable(order, m_issue,
 				minGuaranteeDate);

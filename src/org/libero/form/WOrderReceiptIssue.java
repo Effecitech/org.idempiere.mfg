@@ -440,6 +440,50 @@ public class WOrderReceiptIssue extends OrderReceiptIssue
 	public void prepareTable(IMiniTable miniTable) {
 		configureMiniTable(miniTable);
 	}
+	
+	public void createIssue() {
+		checkQtyAvailability();
+
+		if (getMovementDate() == null) {
+			Messagebox.show(Msg.getMsg(Env.getCtx(), "NoDate"), "Info", Messagebox.OK, Messagebox.INFORMATION);
+			return;
+		}
+
+		if ((isOnlyReceipt() || isBackflush()) && getM_Locator_ID() <= 0) {
+			Messagebox.show(Msg.getMsg(Env.getCtx(), "NoLocator"), "Info", Messagebox.OK, Messagebox.INFORMATION);
+			return;
+		}
+		// Switch Tabs
+		TabsReceiptsIssue.setSelectedIndex(1);
+
+		generateSummaryTable();
+
+		/*
+		 * int result = -1;
+		 * 
+		 * result = Messagebox.show(Msg.getMsg(Env.getCtx(),
+		 * "Update"),"",Messagebox.OK|Messagebox.CANCEL,Messagebox.QUESTION);
+		 * 
+		 * if ( result == 1) { final boolean isCloseDocument =
+		 * (Messagebox.show(Msg.parseTranslation(Env.getCtx(),"@IsCloseDocument@ : &&&&"
+		 * +
+		 * getPP_Order().getDocumentNo()),"",Messagebox.OK|Messagebox.CANCEL,Messagebox.
+		 * QUESTION) == Messagebox.OK);
+		 * 
+		 * if (cmd_process(isCloseDocument, issue)) { dispose(); return; }
+		 * //Clients.showBusy(TabsReceiptsIssue, null); }
+		 */
+
+		// pshepetko msg<
+		if (cmd_process(true, issue)) {
+			dispose();
+			return;
+		}
+						// Clients.showBusy(TabsReceiptsIssue, null);
+		// pshepetko msg>
+
+		TabsReceiptsIssue.setSelectedIndex(0);
+	}
 
 	/**
 	 * Called when events occur in the window
