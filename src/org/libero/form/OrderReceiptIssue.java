@@ -883,7 +883,7 @@ public class OrderReceiptIssue extends GenForm {
 		m_M_Locator_ID = M_Locator_ID;
 	}
 
-	protected void setMovementDate(Timestamp date) {
+	public void setMovementDate(Timestamp date) {
 		m_movementDate = date;
 	}
 
