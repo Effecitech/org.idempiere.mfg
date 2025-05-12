@@ -243,6 +243,7 @@ public class CostEngine
 //					cd.setM_CostType_ID(as.getM_CostType_ID());
 //					//cd.setCostingMethod(element.getCostingMethod());
 //					cd.setM_Transaction_ID(mtrx.get_ID());
+					cd.setDateAcct(mtrx.getMovementDate());
 					if(model instanceof MPPCostCollector)
 						cd.setPP_Cost_Collector_ID(model.get_ID());
 				}
@@ -268,7 +269,7 @@ public class CostEngine
 			int M_AttributeSetInstance_ID)
 	{
 		//	Delete Unprocessed zero Differences
-		String sql = "DELETE " + MCostDetail.Table_Name
+		String sql = "DELETE FROM " + MCostDetail.Table_Name
 		+ " WHERE Processed='N' AND COALESCE(DeltaAmt,0)=0 AND COALESCE(DeltaQty,0)=0"
 		+ " AND "+model.get_TableName()+"_ID=?" 
 		+ " AND "+MCostDetail.COLUMNNAME_C_AcctSchema_ID+"=?" 
@@ -443,6 +444,7 @@ public class CostEngine
 						"", // Description,
 						cc.get_TrxName());
 				cd.setPP_Cost_Collector_ID(cc.getPP_Cost_Collector_ID());
+				cd.setDateAcct(cc.getDateAcct());
 				cd.saveEx();
 				processCostDetail(cd);
 			}

@@ -144,6 +144,7 @@ public class MPPCostCollector extends X_PP_Cost_Collector implements DocAction ,
 		{
 			cc.setC_UOM_ID(0); // we set the BOM Line UOM on beforeSave
 		}
+		cc.setS_Resource_ID(order.getS_Resource_ID());
 		cc.saveEx(order.get_TrxName());
 		if (!cc.processIt(MPPCostCollector.DOCACTION_Complete))
 		{
@@ -549,8 +550,8 @@ public class MPPCostCollector extends X_PP_Cost_Collector implements DocAction ,
 			; // nothing
 		}
 		//
-		CostEngineFactory.getCostEngine(getAD_Client_ID()).createRateVariances(this);
-		CostEngineFactory.getCostEngine(getAD_Client_ID()).createMethodVariances(this);
+		//CostEngineFactory.getCostEngine(getAD_Client_ID()).createRateVariances(this);
+		//CostEngineFactory.getCostEngine(getAD_Client_ID()).createMethodVariances(this);
 
 		m_processMsg = ModelValidationEngine.get().fireDocValidate(this, ModelValidator.TIMING_AFTER_COMPLETE);
 		if (m_processMsg != null)
