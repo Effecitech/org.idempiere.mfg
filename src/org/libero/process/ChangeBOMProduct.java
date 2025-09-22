@@ -1,5 +1,6 @@
 package org.libero.process;
 
+import org.compiere.model.MProduct;
 import org.compiere.model.MStorageReservation;
 import org.compiere.model.PO;
 import org.compiere.process.ProcessInfoParameter;
@@ -38,12 +39,15 @@ public class ChangeBOMProduct extends SvrProcess {
 			return "Nessuna riga con questo prodotto trovata!";
 		}
 
+		MProduct product = new MProduct(Env.getCtx(), m_product_to_id, trxName);
+		
 		MPPOrderBOMLine bomline = new MPPOrderBOMLine(Env.getCtx(), pp_order_bomline_id, trxName);
 		MPPOrderBOMLine bomlineTo = new MPPOrderBOMLine(Env.getCtx(), 0, trxName);
 
 		// Copy from original bomline
 		PO.copyValues(bomline, bomlineTo);
 		bomlineTo.setM_Product_ID(m_product_to_id);
+		bomlineTo.setDescription(product.getDescription());
 		bomlineTo.saveEx(trxName);
 
 		// Update reserved qty
