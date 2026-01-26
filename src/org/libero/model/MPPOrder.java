@@ -1036,28 +1036,31 @@ public class MPPOrder extends X_PP_Order implements DocAction
 		final MPPProductBOM PP_Product_BOM = MPPProductBOM.get(getCtx(), getPP_Product_BOM_ID());
 		//iterate Product BOM components as more Parent tab records
 		
-		// Product from Order should be same as product from BOM - teo_sarca [ 2817870 ] 
-		if (getM_Product_ID() != PP_Product_BOM.getM_Product_ID())
-		{
-			throw new AdempiereException("@NotMatch@ @PP_Product_BOM_ID@ , @M_Product_ID@");
-		}
-		// Product BOM Configuration should be verified - teo_sarca [ 2817870 ]
-		final MProduct product = MProduct.get(getCtx(), PP_Product_BOM.getM_Product_ID());
-		if (!product.isVerified())
-		{
-			throw new AdempiereException("Product BOM Configuration not verified. Please verify the product first - "+product.getValue()); // 
-		}
-		if (PP_Product_BOM.isValidFromTo(getDateStartSchedule()))
-		{
-			MPPOrderBOM PP_Order_BOM = new MPPOrderBOM(PP_Product_BOM, getPP_Order_ID(), get_TrxName());
-			PP_Order_BOM.setAD_Org_ID(getAD_Org_ID());
-			PP_Order_BOM.saveEx(get_TrxName());
-
-			expandBOM(PP_Product_BOM, PP_Order_BOM, getQtyOrdered());
-		} // end if From / To parent
-		else
-		{
-			throw new BOMExpiredException(PP_Product_BOM, getDateStartSchedule());
+		if(PP_Product_BOM != null) {
+		
+			// Product from Order should be same as product from BOM - teo_sarca [ 2817870 ] 
+			if (getM_Product_ID() != PP_Product_BOM.getM_Product_ID())
+			{
+				throw new AdempiereException("@NotMatch@ @PP_Product_BOM_ID@ , @M_Product_ID@");
+			}
+			// Product BOM Configuration should be verified - teo_sarca [ 2817870 ]
+			final MProduct product = MProduct.get(getCtx(), PP_Product_BOM.getM_Product_ID());
+			if (!product.isVerified())
+			{
+				throw new AdempiereException("Product BOM Configuration not verified. Please verify the product first - "+product.getValue()); // 
+			}
+			if (PP_Product_BOM.isValidFromTo(getDateStartSchedule()))
+			{
+				MPPOrderBOM PP_Order_BOM = new MPPOrderBOM(PP_Product_BOM, getPP_Order_ID(), get_TrxName());
+				PP_Order_BOM.setAD_Org_ID(getAD_Org_ID());
+				PP_Order_BOM.saveEx(get_TrxName());
+	
+				expandBOM(PP_Product_BOM, PP_Order_BOM, getQtyOrdered());
+			} // end if From / To parent
+			else
+			{
+				throw new BOMExpiredException(PP_Product_BOM, getDateStartSchedule());
+			}
 		}
 
 		// Create Workflow (Routing & Process)
